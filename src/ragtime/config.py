@@ -36,9 +36,11 @@ class Settings(BaseSettings):
     qdrant_collection_name: str = Field(default="tickets_support")
 
     # --- Embeddings ---
-    embedding_model: str = Field(default="BAAI/bge-m3")
+    # Voir docs/ADR/001-embeddings-substitut.md pour le choix du modèle.
+    embedding_model: str = Field(default="intfloat/multilingual-e5-large")
     embedding_batch_size: int = Field(default=32, ge=1, le=512)
     embedding_device: Literal["cpu", "cuda", "mps"] = Field(default="cpu")
+    sparse_embedding_model: str = Field(default="Qdrant/bm25")
 
     # --- Reranker ---
     reranker_model: str = Field(default="BAAI/bge-reranker-v2-m3")

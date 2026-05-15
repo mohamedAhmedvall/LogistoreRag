@@ -13,7 +13,9 @@ def test_settings_defaults_load() -> None:
     """Les valeurs par défaut se chargent sans erreur."""
     s = Settings(_env_file=None)
     assert s.qdrant_collection_name == "tickets_support"
-    assert s.embedding_model == "BAAI/bge-m3"
+    # Voir docs/ADR/001-embeddings-substitut.md
+    assert s.embedding_model == "intfloat/multilingual-e5-large"
+    assert s.sparse_embedding_model == "Qdrant/bm25"
     assert s.embedding_device in {"cpu", "cuda", "mps"}
     assert s.api_port == 8000
     assert s.hybrid_top_k_final <= s.hybrid_top_k_retrieve
