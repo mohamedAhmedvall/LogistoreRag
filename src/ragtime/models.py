@@ -87,7 +87,7 @@ class Ticket(BaseModel):
     customer_satisfaction_score: int | None = Field(default=None, ge=1, le=5)
     first_response_time_hours: float | None = Field(default=None, ge=0)
     resolution_time_hours: float | None = Field(default=None, ge=0)
-    issue_complexity_score: int | None = Field(default=None, ge=1, le=5)
+    issue_complexity_score: int | None = Field(default=None, ge=1, le=10)
     customer_segment: str | None = None
 
     # Dates
