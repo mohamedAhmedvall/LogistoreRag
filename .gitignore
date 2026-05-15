@@ -1,0 +1,85 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual env
+.venv/
+venv/
+env/
+ENV/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Données (NE JAMAIS commit)
+data/raw/
+data/processed/
+data/evaluation/
+!data/golden/
+*.csv
+*.parquet
+*.jsonl
+!data/golden/*.json
+
+# Modèles téléchargés
+models/
+.cache/
+
+# Secrets et config locale
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Notebooks (outputs)
+.ipynb_checkpoints/
+notebooks/*.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# Qdrant local storage
+qdrant_storage/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Local / corporate environment (non versionné)
+.claude/
+*.cer
+somei_proxy_*.ps1

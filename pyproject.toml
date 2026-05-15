@@ -1,0 +1,72 @@
+[project]
+name = "ragtime-logistore"
+version = "0.1.0"
+description = "MVP RAG hybride pour la recherche de tickets de support — projet LogiStore"
+authors = [{ name = "Mohamed AHMEDVALL" }]
+requires-python = ">=3.11"
+license = { text = "MIT" }
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "N",   # pep8-naming
+    "S",   # flake8-bandit (security)
+    "T20", # flake8-print (no print statements)
+]
+ignore = [
+    "S101",  # use of assert (ok in tests)
+    "B008",  # function calls in defaults (FastAPI Depends)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S106"]
+"scripts/**" = ["T201"]  # scripts peuvent print
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: tests d'intégration nécessitant Qdrant",
+    "slow: tests lents (embedding batch, etc.)",
+]
+addopts = "-v --tb=short --strict-markers"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src/ragtime"]
+omit = ["tests/*", "scripts/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
+show_missing = true
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+exclude = ["tests/", "scripts/", "notebooks/"]
