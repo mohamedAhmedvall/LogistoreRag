@@ -1,78 +1,224 @@
-# RAG-time / LogiStore
+<div align="center">
 
-> Moteur de recherche d'entreprise basé sur un RAG hybride (BM25 + sémantique), centré sur les tickets de support de l'entreprise fictive LogiStore.
+# LogiStore RAG
 
-**Projet académique** — M2 IA & Data Science, La Plateforme Marseille — Mai 2026
-**Auteur** — Mohamed AHMEDVALL
+### Hybrid enterprise search for support tickets
+
+**BM25 + dense retrieval + reranking + optional LLM synthesis**
+
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
+![Qdrant](https://img.shields.io/badge/Qdrant-vector%20search-DC244C)
+![Status](https://img.shields.io/badge/status-academic%20MVP-orange)
+
+</div>
 
 ---
 
-## 🎯 Objectif
+## Overview
 
-Construire un moteur de recherche qui démontre la valeur d'un système RAG appliqué à un contexte d'entreprise, en commençant par les tickets de support et en posant les fondations pour une extension future (ERP, CRM, PIM, GED).
+**LogiStore RAG** is an enterprise-search prototype built around a **hybrid Retrieval-Augmented Generation pipeline** for technical-support tickets.
 
-## 🏗️ Stack
+The project focuses on retrieval quality first: sparse and dense signals are combined, optional cross-encoder reranking improves result ordering, and an LLM can synthesize an answer from the retrieved evidence.
 
-- **Qdrant** — vector store self-hosted (hybride dense + sparse natif)
-- **BGE-M3** — embeddings multilingues (dense + sparse en 1 forward)
-- **BGE-reranker-v2-m3** — cross-encoder optionnel pour le post-rerank
-- **FastAPI** — backend REST
-- **Streamlit** — frontend MVP
-- **OpenRouter** — LLM pour la synthèse optionnelle (Claude / Mistral)
-- **RAGAS + LLM-as-judge** — évaluation
+It was developed as an **M2 AI & Data Science project at La Plateforme, Marseille**.
 
-Voir `docs/02_architecture.md` pour le détail et `docs/architecture.png` pour le schéma.
+---
 
-## 🚀 Démarrage rapide
+## Problem
 
-```bash
-# Prérequis : Docker, Python 3.11+, make
+Support teams often have years of solved tickets, but the knowledge remains difficult to reuse because:
 
-# 1. Installation
-make install
+- terminology varies between users and technicians;
+- exact keyword search misses semantically similar incidents;
+- pure semantic search can overlook highly discriminative technical terms;
+- generated answers are difficult to trust without traceable source retrieval.
 
-# 2. Configuration
-cp .env.example .env
-# éditer .env (clé OpenRouter notamment)
+LogiStore RAG explores a retrieval architecture designed to balance **lexical precision, semantic recall and answer traceability**.
 
-# 3. Démarrage de Qdrant
-make qdrant-up
+---
 
-# 4. Téléchargement du dataset
-make download-data
+## Architecture
 
-# 5. Ingestion (~10-20 min selon volume)
-make ingest
+```mermaid
+flowchart LR
+    U[User query] --> Q[Query processing]
+    Q --> S[Sparse retrieval]
+    Q --> D[Dense retrieval]
+    S --> H[Hybrid fusion]
+    D --> H
+    H --> R[Optional cross-encoder reranker]
+    R --> C[Top-k context]
+    C --> L[Optional LLM synthesis]
+    C --> API[Search API response]
+    L --> API
 
-# 6. Lancement de l'API et du frontend (deux terminaux)
-make api    # http://localhost:8000
-make ui     # http://localhost:8501
+    T[Support tickets] --> E[BGE-M3 embeddings]
+    E --> V[(Qdrant)]
+    T --> V
+    V --> S
+    V --> D
 ```
 
-## 📊 Évaluation
+---
+
+## Technical stack
+
+| Layer | Technology | Role |
+|---|---|---|
+| Vector database | **Qdrant** | Self-hosted dense + sparse retrieval |
+| Embeddings | **BGE-M3** | Multilingual dense and sparse representations |
+| Reranking | **BGE-reranker-v2-m3** | Optional cross-encoder reranking |
+| API | **FastAPI** | Search and service endpoints |
+| UI | **Streamlit** | Lightweight MVP interface |
+| LLM layer | **OpenRouter** | Optional answer synthesis |
+| Evaluation | **RAGAS + IR metrics** | Retrieval and generation assessment |
+
+---
+
+## Quick start
+
+### Requirements
+
+- Docker
+- Python 3.11+
+- `make`
+
+### Install and run
+
+```bash
+make install
+cp .env.example .env
+```
+
+Configure the environment, then start Qdrant:
+
+```bash
+make qdrant-up
+```
+
+Download and ingest the dataset:
+
+```bash
+make download-data
+make ingest
+```
+
+Launch the API and UI in separate terminals:
+
+```bash
+make api
+make ui
+```
+
+Local services:
+
+```text
+API: http://localhost:8000
+UI:  http://localhost:8501
+```
+
+---
+
+## Evaluation
+
+The project includes a reproducible evaluation pipeline:
 
 ```bash
 make eval
-# Produit un rapport dans data/evaluation/report.html
 ```
 
-Métriques calculées : Precision@5, Recall@10, NDCG@10, MRR + RAG Triad via LLM-as-judge.
+The generated report is written to:
 
-## 📁 Documentation
+```text
+data/evaluation/report.html
+```
 
-- [`docs/01_veille_technologique.md`](docs/01_veille_technologique.md) — état de l'art RAG
-- [`docs/02_architecture.md`](docs/02_architecture.md) — architecture cible
-- [`docs/03_etude_risques.md`](docs/03_etude_risques.md) — analyse de risques
-- [`docs/04_evaluation_protocole.md`](docs/04_evaluation_protocole.md) — protocole d'évaluation
+### Retrieval metrics
 
-## 🧪 Tests
+- Precision@5
+- Recall@10
+- NDCG@10
+- MRR
+
+### RAG quality
+
+The generation layer can additionally be evaluated with **RAGAS / LLM-as-judge** style checks.
+
+The repository intentionally separates **retrieval evaluation** from **answer-generation evaluation** so improvements can be attributed to the correct stage of the pipeline.
+
+---
+
+## Design choices
+
+### Why hybrid search?
+
+Support tickets contain both natural-language descriptions and highly specific technical identifiers. Dense retrieval captures semantic similarity while sparse retrieval preserves exact lexical signals.
+
+### Why reranking?
+
+The first retrieval stage optimizes candidate recall. A cross-encoder can then spend more compute on a small candidate set to improve final ordering.
+
+### Why optional generation?
+
+The search engine remains useful without an LLM. Generation is treated as an additional layer rather than the foundation of retrieval, which makes the system easier to evaluate and debug.
+
+---
+
+## Project structure
+
+```text
+.
+├── docs/                       # architecture, research, risk and evaluation notes
+├── data/                       # datasets and generated evaluation artifacts
+├── src/                        # ingestion, retrieval and application code
+├── tests/                      # unit and integration tests
+├── .env.example               # configuration template
+├── Makefile                   # common development commands
+└── README.md
+```
+
+See the detailed architecture in:
+
+- [`docs/01_veille_technologique.md`](docs/01_veille_technologique.md)
+- [`docs/02_architecture.md`](docs/02_architecture.md)
+- [`docs/03_etude_risques.md`](docs/03_etude_risques.md)
+- [`docs/04_evaluation_protocole.md`](docs/04_evaluation_protocole.md)
+
+---
+
+## Tests and quality
 
 ```bash
-make test         # tests unitaires
-make test-int     # tests d'intégration (Qdrant requis)
-make lint         # ruff + black --check
+make test
+make test-int
+make lint
 ```
 
-## 📜 Licence
+Integration tests require a running Qdrant instance.
 
-MIT — projet académique
+---
+
+## Future directions
+
+Potential extensions include:
+
+- multi-source enterprise ingestion (ERP, CRM, PIM, GED);
+- metadata-aware filtering and access control;
+- query rewriting and intent routing;
+- retrieval observability and error analysis;
+- offline benchmark datasets for regression testing;
+- citation-aware answer generation.
+
+---
+
+## Author
+
+**Mohamed AHMEDVALL**  
+AI & Data Science — La Plateforme, Marseille
+
+---
+
+## License
+
+MIT — academic project.
